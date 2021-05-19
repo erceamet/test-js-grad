@@ -39,8 +39,40 @@ The results should have this structure:
  * be in alphabetical order.
  */
 
+const { default: axios } = require('axios');
+
 module.exports = async function organiseMaintainers() {
   // TODO
+  let maintainers = [];
+  const content = await axios
+    .post('http://ambush-api.inyourarea.co.uk/ambush/intercept', {
+      url: 'https://api.npms.io/v2/search/suggestions?q=react',
+      method: 'GET',
+      return_payload: true,
+    })
+    .then(res => {
+      return res.data.content;
+    });
 
-  return maintainers
+  let usernames = [];
+  content.forEach(i => {
+    i.package.maintainers.forEach(childrenI => {
+      !usernames.includes(childrenI.username)
+        ? usernames.push(childrenI.username)
+        : null;
+    });
+  });
+  usernames.sort();
+  usernames.forEach(user => {
+    let listOfPackages = [];
+    content.forEach(i => {
+      i.package.maintainers.forEach(childrenI => {
+        childrenI.username == user ? listOfPackages.push(i.package.name) : null;
+      });
+    });
+    listOfPackages.sort();
+    maintainers.push({ username: user, packageNames: listOfPackages });
+  });
+  return maintainers;
+  // return maintainers;
 };

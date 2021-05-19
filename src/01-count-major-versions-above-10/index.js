@@ -29,8 +29,27 @@ The results should have this structure:
  *  greater than 10.x.x
  */
 
+const { default: axios } = require('axios');
+
 module.exports = async function countMajorVersionsAbove10() {
   // TODO
+  const count = await axios
+    .post('http://ambush-api.inyourarea.co.uk/ambush/intercept', {
+      url: 'https://api.npms.io/v2/search/suggestions?q=react',
+      method: 'GET',
+      return_payload: true,
+    })
+    .then(res => {
+      return countPackages(res.data.content);
+    });
+  return count;
+};
 
-  return count
+const countPackages = content => {
+  let countOfPackages = 0;
+  content.forEach(i => {
+    var splittedVersionNumber = i.package.version.split('.');
+    if (splittedVersionNumber[0] >= 10) countOfPackages++;
+  });
+  return countOfPackages;
 };
